@@ -6,7 +6,7 @@
   var LS = { snap: 'sn_snap_v1', key: 'sn_key_v1', watch: 'sn_watch_v1', mode: 'sn_mode_v1' };
 
   var state = { tab: 'screen', mode: 'long', q: '', sector: 'All', sort: 'score', ratedOnly: false,
-                data: null, offline: false, demo: false, loading: true, keyMsg: '', installEvt: null };
+                data: null, offline: false, demo: false, loading: true, keyMsg: '', installEvt: null, err: '' };
 
   /* ------------------------------ helpers ------------------------------ */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -70,26 +70,31 @@
     return CFG.API_URL + (CFG.API_URL.indexOf('?') > -1 ? '&' : '?') + (k ? 'key=' + encodeURIComponent(k) : '');
   }
 
+  function fetchFeed(timeoutMs) {
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, timeoutMs);
+    return fetch(apiUrl(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) { if (!d || !d.ok) throw new Error((d && d.error) || 'bad response'); return d; })
+      .catch(function (e) { clearTimeout(timer); throw (e && e.name === 'AbortError') ? new Error('timed out') : e; });
+  }
+
   function load() {
     state.loading = true; render();
     if (!CFG.API_URL) { state.data = demoData(); state.demo = true; state.loading = false; render(); return; }
-    var ctl = ('AbortController' in window) ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
-    fetch(apiUrl(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    // Apps Script can take several seconds to wake up, so allow a long wait and one retry.
+    fetchFeed(40000).catch(function () { return new Promise(function (res) { setTimeout(res, 1500); }).then(function () { return fetchFeed(40000); }); })
       .then(function (d) {
-        if (!d || !d.ok) throw new Error((d && d.error) || 'bad response');
-        clearTimeout(timer);
-        state.data = d; state.offline = false; state.loading = false;
+        state.data = d; state.offline = false; state.err = ''; state.loading = false;
         if (lsGet(LS.key, '') && d.locked) state.keyMsg = d.keyProblem === 'expired' ? 'That key has expired. Ask for a renewal.' :
           d.keyProblem === 'revoked' ? 'That key is no longer active.' : 'That key was not recognised. Check it and try again.';
         else state.keyMsg = '';
         lsSet(LS.snap, JSON.stringify({ t: Date.now(), d: d }));
         render();
       })
-      .catch(function () {
-        clearTimeout(timer);
-        try { var c = JSON.parse(lsGet(LS.snap, 'null')); if (c && c.d) { state.data = c.d; state.offline = true; } } catch (e) { /* none */ }
+      .catch(function (e) {
+        state.err = String((e && e.message) || e || 'unknown');
+        try { var c = JSON.parse(lsGet(LS.snap, 'null')); if (c && c.d) { state.data = c.d; state.offline = true; } } catch (x) { /* none */ }
         state.loading = false; render();
       });
   }
@@ -98,7 +103,7 @@
   function banners() {
     var b = [], d = state.data;
     if (state.demo) b.push('<div class="banner demo" role="status"><span>⚠</span><span><b>Demo data.</b> These are illustrative numbers, not real prices. Add your feed link in config.js.</span></div>');
-    if (state.offline) b.push('<div class="banner warn" role="status"><span>⚠</span><span>You are offline or the feed is unreachable. Showing the last saved data.</span></div>');
+    if (state.offline) b.push('<div class="banner warn" role="status"><span>⚠</span><span>Could not reach the data feed (' + esc(state.err || 'no connection') + '). Showing the last saved data. <a href="#" data-act="reload" style="color:inherit;font-weight:600">Try again</a></span></div>');
     if (d && d.health === 'CHECK') b.push('<div class="banner warn" role="status"><span>⚠</span><span>Data may be delayed while we fix a refresh problem. Check the time above.</span></div>');
     $('#banners').innerHTML = b.join('');
   }
