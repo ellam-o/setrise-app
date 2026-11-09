@@ -6,5 +6,8 @@ window.SETRISE_CONFIG = {
   SIGNUP_URL: "https://forms.gle/EbfkUYpbj4p79asJ8",   // your waitlist form
   TELEGRAM_URL: "",                                    // optional channel link, e.g. https://t.me/yourchannel
   WHATSAPP_URL: "",                                    // optional, e.g. https://wa.me/2547XXXXXXXX
+  // Optional fallback currency rates (units of foreign currency per 1 KES), used only if the feed has none.
+  // Example: FX_FALLBACK: { SAR: 0.029, AED: 0.0284, QAR: 0.0282 }
+  FX_FALLBACK: {},
   SUPPORT_EMAIL: ""                                    // optional
 };
