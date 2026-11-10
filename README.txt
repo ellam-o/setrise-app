@@ -1,4 +1,4 @@
-SETRISE NASE APP  (installable web app, free to host)
+SETRISE NSE APP  (installable web app, free to host)
 Rise with reasons.
 
 WHAT THIS FOLDER IS

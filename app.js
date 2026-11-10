@@ -1,4 +1,4 @@
-/* Setrise NASE app. No build step, no libraries. Rise with reasons. */
+/* Setrise NSE app. No build step, no libraries. Rise with reasons. */
 (function () {
   'use strict';
   var CFG = window.SETRISE_CONFIG || {};
@@ -109,7 +109,10 @@
       .catch(function (e) { clearTimeout(timer); throw (e && e.name === 'AbortError') ? new Error('timed out') : e; });
   }
   function load() {
-    state.loading = true; render();
+    var c0 = jget(LS.snap, null);
+    if (c0 && c0.d && !state.data) { state.data = c0.d; state.loading = false; }   // show saved data at once, refresh in the background
+    else if (!state.data) state.loading = true;
+    render();
     if (!CFG.API_URL) { state.data = demoData(); state.demo = true; state.loading = false; render(); return; }
     fetchFeed(40000).catch(function () { return new Promise(function (res) { setTimeout(res, 1500); }).then(function () { return fetchFeed(40000); }); })
       .then(function (d) {
@@ -123,6 +126,7 @@
         state.err = String((e && e.message) || e || 'unknown');
         var c = jget(LS.snap, null); if (c && c.d) { state.data = c.d; state.offline = true; }
         state.loading = false; render();
+        if (!state.retryTimer) state.retryTimer = setTimeout(function () { state.retryTimer = null; if (state.offline && !document.hidden) load(); }, 60000);
       });
   }
 
@@ -130,7 +134,8 @@
   function banners() {
     var b = [], d = state.data;
     if (state.demo) b.push('<div class="banner demo" role="status"><span>⚠</span><span>' + t('b_demo') + '</span></div>');
-    if (state.offline) b.push('<div class="banner warn" role="status"><span>⚠</span><span>' + t('b_feed') + ' (' + esc(state.err || '–') + '). ' + t('b_saved') + ' <a href="#" data-act="reload" style="color:inherit;font-weight:600">' + t('try_again') + '</a></span></div>');
+    var wd = d && when(d.asOf), recent = wd && wd.mins < 360;   // saved data under 6 h old: the time at the top already tells the truth, so no alarm
+    if (state.offline && !recent) b.push('<div class="banner warn" role="status"><span>⚠</span><span>' + t('b_feed') + ' (' + esc(state.err || '–') + '). ' + t('b_saved') + ' <a href="#" data-act="reload" style="color:inherit;font-weight:600">' + t('try_again') + '</a></span></div>');
     if (d && d.health === 'CHECK') b.push('<div class="banner warn" role="status"><span>⚠</span><span>' + t('b_delay') + '</span></div>');
     $('#banners').innerHTML = b.join('');
   }
@@ -303,10 +308,10 @@
     function ymd(ds) { return ds.replace(/-/g, ''); }
     function next(ds) { var d = new Date(ds + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10).replace(/-/g, ''); }
     var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
-    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Setrise NASE//EN', 'CALSCALE:GREGORIAN'];
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Setrise NSE//EN', 'CALSCALE:GREGORIAN'];
     list.forEach(function (s) {
       L.push('BEGIN:VEVENT', 'UID:' + s.ticker + '-' + s.exDiv + '@setrise-nase', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(s.exDiv), 'DTEND;VALUE=DATE:' + next(s.exDiv),
-        'SUMMARY:' + s.ticker + ' ex-dividend date', 'DESCRIPTION:' + (s.name + ' ex-dividend date (Setrise NASE). Check the book-closure date and your broker settlement time. Not investment advice.').replace(/,/g, '\\,'),
+        'SUMMARY:' + s.ticker + ' ex-dividend date', 'DESCRIPTION:' + (s.name + ' ex-dividend date (Setrise NSE). Check the book-closure date and your broker settlement time. Not investment advice.').replace(/,/g, '\\,'),
         'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:' + s.ticker + ' ex-dividend tomorrow', 'END:VALARM', 'END:VEVENT');
     });
     L.push('END:VCALENDAR');

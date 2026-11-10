@@ -1,4 +1,4 @@
-/* Setrise NASE text in English and Kiswahili. Reasons from the sheet stay in English.
+/* Setrise NSE text in English and Kiswahili. Reasons from the sheet stay in English.
    Kiswahili was written by an AI model: have a native speaker review it before you rely on it. */
 window.SN_I18N = {
   en: {
@@ -8,7 +8,7 @@ window.SN_I18N = {
     asof: 'Data as of', loading: 'Loading…', free_title: 'Top long-term candidates (free preview)',
     lock_h: 'See all stocks and the reasons', lock_p: 'You are seeing the free top 5. Members get every stock, the short-term setups and the full reasons behind each rating.',
     join: 'Join the waitlist', member_q: 'Already a member?', enter_key: 'Enter your key',
-    disclaimer: 'Setrise NASE is an educational screening tool, not investment advice. Scores use delayed public data and can be wrong. Do your own research.',
+    disclaimer: 'Setrise NSE is an educational screening tool, not investment advice. Scores use delayed public data and can be wrong. Do your own research.',
     no_match: 'No matches', no_match_p: 'Try clearing the search or filters.',
     last_price: 'Last price (KES)', data: 'Data', fresh: 'Fresh', stale: 'Stale', long_score: 'Long-term score', short_score: 'Short-term score',
     coverage: 'Data coverage', key_numbers: 'Key numbers', yield: 'Yield %', next_exdiv: 'Next ex-div', days_exdiv: 'Days to ex-div',
@@ -16,11 +16,11 @@ window.SN_I18N = {
     watch_empty: 'Your watchlist is empty', watch_empty_p: 'Open any stock and tap the star to follow it here. Your list stays on this phone.', watch_h: 'Your watchlist',
     me_access: 'Your access', plan: 'Plan', free_prev: 'Free preview', member: 'Member', valid_until: 'Valid until', unlock: 'Unlock', update: 'Update',
     remove_key: 'Remove key from this phone', key_note: 'Your key is stored only on this phone. Do not share it: it is for one subscriber.',
-    install_h: 'Install on your phone', installed: 'You are using the installed app.', install_btn: 'Install Setrise NASE',
+    install_h: 'Install on your phone', installed: 'You are using the installed app.', install_btn: 'Install Setrise NSE',
     install_help: '<b>Android (Chrome):</b> menu ⋮ then “Install app” or “Add to Home screen”.<br><b>iPhone (Safari):</b> Share button then “Add to Home Screen”.',
     lang: 'Language', read_h: 'How to read a score',
     read_p: '<b>Long-term (0 to 100):</b> quality + income + value: return on equity, dividends, and price versus earnings and book value.<br><br><b>Short-term (0 to 100):</b> trend, momentum, volume, and dividend run-up. It needs fresh data and price history.<br><br><b>Coverage</b> is the share of the model that had data. Low coverage means a lower-confidence rating. <b>Tier A/B/C</b> shows how easy a stock is to trade; Tier C is illiquid.',
-    legal: 'Setrise NASE is an educational screening tool, not investment advice or a recommendation to buy or sell. Data comes from public sources, is delayed, and may contain errors. Past scores do not predict future returns.',
+    legal: 'Setrise NSE is an educational screening tool, not investment advice or a recommendation to buy or sell. Data comes from public sources, is delayed, and may contain errors. Past scores do not predict future returns.',
     key_bad: 'That key was not recognised. Check it and try again.', key_expired: 'That key has expired. Ask for a renewal.', key_revoked: 'That key is no longer active.',
     b_demo: '<b>Demo data.</b> These are illustrative numbers, not real prices. Add your feed link in config.js.',
     b_feed: 'Could not reach the data feed', b_saved: 'Showing the last saved data.', try_again: 'Try again', b_delay: 'Data may be delayed while we fix a refresh problem. Check the time above.',
@@ -42,7 +42,7 @@ window.SN_I18N = {
     port_h: 'Your portfolio', port_empty: 'No holdings yet', port_empty_p: 'Add what you own to see its value and profit or loss. It is stored only on this phone.', port_add: 'Add a holding', port_stock: 'Stock', port_qty: 'Shares', port_cost: 'Average cost per share (KES)', port_save: 'Save holding',
     port_value: 'Value', port_cost_total: 'Cost', port_pl: 'Profit / loss', port_div: 'Est. yearly dividends', port_export: 'Export CSV', port_remove: 'Remove', port_note: 'Uses the latest price from the app. Dividend estimate = shares × price × yield and is only a rough guide. Stored only on this phone: clearing the app data erases it.',
     port_pick: 'Choose a stock', port_err: 'Enter a stock, number of shares and cost.',
-    shared_text: 'on Setrise NASE. Rise with reasons. Not investment advice.',
+    shared_text: 'on Setrise NSE. Rise with reasons. Not investment advice.',
     mv: 'Movers'
   },
   sw: {
@@ -52,7 +52,7 @@ window.SN_I18N = {
     asof: 'Data ya', loading: 'Inapakia…', free_title: 'Hisa bora za muda mrefu (onyesho la bure)',
     lock_h: 'Ona hisa zote na sababu zake', lock_p: 'Unaona hisa 5 bora bila malipo. Wanachama hupata hisa zote, fursa za muda mfupi na sababu kamili nyuma ya kila daraja.',
     join: 'Jiunge na orodha ya kusubiri', member_q: 'Tayari wewe ni mwanachama?', enter_key: 'Weka ufunguo wako',
-    disclaimer: 'Setrise NASE ni zana ya kielimu ya kuchuja hisa, si ushauri wa uwekezaji. Alama hutumia data ya umma iliyochelewa na zinaweza kuwa na makosa. Fanya utafiti wako mwenyewe.',
+    disclaimer: 'Setrise NSE ni zana ya kielimu ya kuchuja hisa, si ushauri wa uwekezaji. Alama hutumia data ya umma iliyochelewa na zinaweza kuwa na makosa. Fanya utafiti wako mwenyewe.',
     no_match: 'Hakuna matokeo', no_match_p: 'Jaribu kufuta utafutaji au vichujio.',
     last_price: 'Bei ya mwisho (KES)', data: 'Data', fresh: 'Mpya', stale: 'Ya zamani', long_score: 'Alama ya muda mrefu', short_score: 'Alama ya muda mfupi',
     coverage: 'Data iliyopatikana', key_numbers: 'Nambari muhimu', yield: 'Gawio %', next_exdiv: 'Ex-div ijayo', days_exdiv: 'Siku hadi ex-div',
@@ -60,11 +60,11 @@ window.SN_I18N = {
     watch_empty: 'Orodha yako ni tupu', watch_empty_p: 'Fungua hisa yoyote na ubonyeze nyota ili kuifuata hapa. Orodha yako hubaki kwenye simu hii.', watch_h: 'Orodha yako',
     me_access: 'Ufikiaji wako', plan: 'Mpango', free_prev: 'Onyesho la bure', member: 'Mwanachama', valid_until: 'Halali hadi', unlock: 'Fungua', update: 'Sasisha',
     remove_key: 'Ondoa ufunguo kwenye simu hii', key_note: 'Ufunguo wako huhifadhiwa kwenye simu hii pekee. Usiushiriki: ni wa mwanachama mmoja.',
-    install_h: 'Sakinisha kwenye simu yako', installed: 'Unatumia programu iliyosakinishwa.', install_btn: 'Sakinisha Setrise NASE',
+    install_h: 'Sakinisha kwenye simu yako', installed: 'Unatumia programu iliyosakinishwa.', install_btn: 'Sakinisha Setrise NSE',
     install_help: '<b>Android (Chrome):</b> menyu ⋮ kisha “Install app” au “Add to Home screen”.<br><b>iPhone (Safari):</b> kitufe cha Share kisha “Add to Home Screen”.',
     lang: 'Lugha', read_h: 'Jinsi ya kusoma alama',
     read_p: '<b>Muda mrefu (0 hadi 100):</b> ubora + mapato + thamani: faida kwa mtaji wa wanahisa, gawio, na bei ikilinganishwa na mapato na thamani ya vitabu.<br><br><b>Muda mfupi (0 hadi 100):</b> mwelekeo, kasi ya bei, kiasi cha biashara, na kupanda kabla ya gawio. Inahitaji data mpya na historia ya bei.<br><br><b>Data iliyopatikana</b> ni sehemu ya kielelezo yenye data. Kiwango cha chini humaanisha daraja lenye uhakika mdogo. <b>Daraja A/B/C</b> linaonyesha urahisi wa kuuza na kununua; Daraja C haliuzwi sana.',
-    legal: 'Setrise NASE ni zana ya kielimu ya kuchuja hisa, si ushauri wa uwekezaji wala pendekezo la kununua au kuuza. Data hutoka vyanzo vya umma, imechelewa, na inaweza kuwa na makosa. Alama za zamani hazitabiri faida ya baadaye.',
+    legal: 'Setrise NSE ni zana ya kielimu ya kuchuja hisa, si ushauri wa uwekezaji wala pendekezo la kununua au kuuza. Data hutoka vyanzo vya umma, imechelewa, na inaweza kuwa na makosa. Alama za zamani hazitabiri faida ya baadaye.',
     key_bad: 'Ufunguo huo haukutambuliwa. Angalia na ujaribu tena.', key_expired: 'Ufunguo huo umekwisha muda. Omba kuhuishwa.', key_revoked: 'Ufunguo huo haufanyi kazi tena.',
     b_demo: '<b>Data ya majaribio.</b> Hizi ni nambari za mfano, si bei halisi. Weka kiungo chako cha data kwenye config.js.',
     b_feed: 'Imeshindwa kufikia data', b_saved: 'Inaonyesha data iliyohifadhiwa mwisho.', try_again: 'Jaribu tena', b_delay: 'Data inaweza kuchelewa tunaporekebisha tatizo. Angalia muda ulio juu.',
@@ -84,7 +84,7 @@ window.SN_I18N = {
     port_h: 'Mali yako', port_empty: 'Bado huna hisa', port_empty_p: 'Ongeza ulizonazo ili uone thamani na faida au hasara. Zinahifadhiwa kwenye simu hii pekee.', port_add: 'Ongeza hisa', port_stock: 'Hisa', port_qty: 'Idadi ya hisa', port_cost: 'Gharama ya wastani kwa hisa (KES)', port_save: 'Hifadhi',
     port_value: 'Thamani', port_cost_total: 'Gharama', port_pl: 'Faida / hasara', port_div: 'Makadirio ya gawio kwa mwaka', port_export: 'Pakua CSV', port_remove: 'Ondoa', port_note: 'Inatumia bei ya hivi karibuni kwenye programu. Makadirio ya gawio = hisa × bei × gawio %, na ni mwongozo wa karibu tu. Huhifadhiwa kwenye simu hii pekee: kufuta data ya programu huifuta.',
     port_pick: 'Chagua hisa', port_err: 'Weka hisa, idadi ya hisa na gharama.',
-    shared_text: 'kwenye Setrise NASE. Rise with reasons. Si ushauri wa uwekezaji.',
+    shared_text: 'kwenye Setrise NSE. Rise with reasons. Si ushauri wa uwekezaji.',
     mv: 'Wanaosogea'
   }
 };
