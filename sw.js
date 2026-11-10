@@ -1,5 +1,5 @@
 // Setrise NSE service worker: app shell works offline. Data is cached by the app itself.
-const VERSION = 'sn-v8';
+const VERSION = 'sn-v11';
 const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'i18n.js', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon.svg'];
 

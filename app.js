@@ -256,6 +256,7 @@
     var m = state.more, d = state.data;
     if (!m) {
       var items = [['movers', '📈', true], ['cal', '📅', true], ['rec', '🏁', false], ['learn', '📖', false], ['tools', '🌍', false]];
+      if (brokers().length) items.push(['cds', '🪪', false]);
       return '<h3 class="sec" style="margin-top:2px">' + t('more_h') + '</h3>' + items.map(function (it) {
         var lockedItem = it[2] && d && d.locked;
         return '<button class="mrow" data-more="' + it[0] + '"><span class="ico">' + it[1] + '</span><span style="flex:1;min-width:0;text-align:left"><b>' + t('m_' + (it[0] === 'rec' ? 'rec' : it[0])) + '</b><br><span class="n">' + t('m_' + it[0] + '_d') + '</span></span>' +
@@ -265,6 +266,7 @@
     if (m === 'learn') return learnView();
     if (m === 'rec') return recordView();
     if (m === 'tools') return toolsView();
+    if (m === 'cds') return cdsView();
     if (!d) return '<div class="empty"><b>–</b></div>';
     if (d.locked) return backBar(t('m_' + m)) + lockPanel();
     return m === 'movers' ? moversView() : calView();
@@ -335,6 +337,20 @@
         return '<tr' + (x.base ? ' class="base"' : '') + '><td>' + (x.base ? esc(x.rating) : esc(rl(x.rating))) + '</td><td>' + fmt(x.n) + '</td><td class="' + (num(x.avg) ? (x.avg >= 0 ? 'up' : 'dn') : '') + '">' + (num(x.avg) ? (x.avg >= 0 ? '+' : '') + fmt(x.avg, 1) + '%' : '–') + '</td><td>' + (num(x.hit) ? fmt(x.hit) + '%' : '–') + '</td></tr>';
       }).join('') + '</tbody></table></div>';
     return h + '<p class="fine">' + t('rec_note') + (r.minDays ? ' (' + r.minDays + ' d)' : '') + '</p>';
+  }
+
+  function brokers() { return (CFG.BROKERS || []).filter(function (b) { return b && b.name; }); }
+  function cdsView() {
+    var h = backBar(t('cds_h')) + '<p class="fine" style="color:var(--text)">' + t('cds_intro') + '</p><h3 class="sec">' + t('cds_steps_h') + '</h3><ol class="steps">' +
+      ['cds_s1', 'cds_s2', 'cds_s3', 'cds_s4'].map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ol>' +
+      '<div class="banner warn" style="margin:10px 0"><span>🔒</span><span><b>' + t('cds_safe_h') + '.</b> ' + t('cds_safe') + '</span></div>' +
+      '<h3 class="sec">' + t('cds_disc_h') + '</h3><p class="fine" style="color:var(--text)">' + t('cds_disc') + '</p>';
+    brokers().forEach(function (b) {
+      h += '<div class="panel"><h4>' + esc(b.name) + '</h4>' + (b.code ? '<div class="keyrow" style="margin:4px 0"><input type="text" readonly value="' + esc(b.code) + '" aria-label="' + t('cds_code') + '"><button class="btn alt" data-copy="' + esc(b.code) + '">' + t('cds_copy') + '</button></div><p class="fine" style="margin:4px 0 8px">' + t('cds_enter') + '</p>' : '') +
+        ((state.lang === 'sw' ? b.how_sw : b.how_en) ? '<p class="fine" style="color:var(--text);margin:4px 0 8px">' + esc(state.lang === 'sw' ? (b.how_sw || b.how_en) : (b.how_en || b.how_sw)) + '</p>' : '') +
+        (b.links || (b.url ? [{ label: t('cds_open'), url: b.url }] : [])).map(function (l, i) { return '<a class="btn ' + (i ? 'alt ' : '') + 'block" style="margin-top:6px" href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + '</a>'; }).join('') + '</div>';
+    });
+    return h + '<p class="fine">' + t('disclaimer') + '</p>';
   }
 
   function learnView() {
@@ -488,7 +504,7 @@
   /* ------------------------------ events ------------------------------ */
   function setTab(tab) { if (tab === 'more' && state.tab === 'more') state.more = ''; state.tab = tab; if (tab !== 'more') state.more = ''; closeSheet(); render(); window.scrollTo(0, 0); }
   document.addEventListener('click', function (e) {
-    var tg = e.target.closest('[data-tab],[data-open],[data-mode],[data-sector],[data-rated],[data-star],[data-close],[data-act],[data-go],[data-more],[data-mv],[data-lang],[data-ics],[data-share],[data-addport],[data-prem]');
+    var tg = e.target.closest('[data-tab],[data-open],[data-mode],[data-sector],[data-rated],[data-star],[data-close],[data-act],[data-go],[data-more],[data-mv],[data-lang],[data-ics],[data-share],[data-addport],[data-prem],[data-copy]');
     if (!tg) { if (e.target.id === 'scrim') closeSheet(); return; }
     var d = tg.dataset;
     if (d.tab) setTab(d.tab);
@@ -509,6 +525,10 @@
     else if (d.ics) {
       var items = calItems(); if (d.ics !== '*') items = items.filter(function (s) { return s.ticker === d.ics; });
       if (items.length) download(d.ics === '*' ? 'setrise-ex-dividends.ics' : d.ics + '-ex-dividend.ics', 'text/calendar', makeIcs(items));
+    }
+    else if (d.copy) {
+      var done = function () { tg.textContent = t('cds_copied'); setTimeout(function () { tg.textContent = t('cds_copy'); }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(d.copy).then(done, function () { /* select manually */ }); else { var inp = tg.previousElementSibling; if (inp && inp.select) { inp.select(); try { document.execCommand('copy'); done(); } catch (x) { /* ignore */ } } }
     }
     else if (d.share) shareStock(d.share);
     else if (d.addport) { closeSheet(); state.tab = 'port'; state.pmsg = ''; render(); var sel = $('#pst'); if (sel) { sel.value = d.addport; var q = $('#pq'); if (q) q.focus(); } window.scrollTo(0, 0); }
