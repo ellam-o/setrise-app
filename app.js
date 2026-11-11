@@ -4,7 +4,7 @@
   var CFG = window.SETRISE_CONFIG || {};
   var I = window.SN_I18N, GL = window.SN_GLOSSARY, RSW = window.SN_RATING_SW || {};
   var TZ = 'Africa/Nairobi';
-  var LS = { snap: 'sn_snap_v1', key: 'sn_key_v1', watch: 'sn_watch_v1', mode: 'sn_mode_v1', lang: 'sn_lang_v1', port: 'sn_port_v1' };
+  var LS = { snap: 'sn_snap_v1', key: 'sn_key_v1', watch: 'sn_watch_v1', mode: 'sn_mode_v1', lang: 'sn_lang_v1', port: 'sn_port_v1', terms: 'sn_terms_v1' };
   var CURS = ['SAR', 'AED', 'QAR', 'USD', 'GBP'];
   var ZONES = [{ tz: '', label: null }, { tz: 'Asia/Riyadh', label: 'Saudi Arabia' }, { tz: 'Asia/Dubai', label: 'UAE' }, { tz: 'Asia/Qatar', label: 'Qatar' },
                { tz: 'Europe/London', label: 'UK' }, { tz: 'America/New_York', label: 'US (New York)' }];
@@ -140,6 +140,7 @@
     $('#banners').innerHTML = b.join('');
   }
   function header() {
+    var dl = $('#dateline'); if (dl) dl.textContent = new Intl.DateTimeFormat(loc(), { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
     var d = state.data, el = $('#asof'), w = d && when(d.asOf);
     if (!w) { el.innerHTML = state.loading ? t('loading') : ''; return; }
     var cls = w.mins < 360 ? '' : w.mins < 4320 ? 'amber' : 'red';
@@ -161,7 +162,7 @@
     var d = state.data;
     return '<div class="lock"><h3>' + t('lock_h') + '</h3><p>' + t('lock_p') + '</p>' +
       (CFG.SIGNUP_URL ? '<a class="btn block" href="' + esc(CFG.SIGNUP_URL) + '" target="_blank" rel="noopener">' + t('join') + '</a>' : '') +
-      '<p style="margin:12px 0 0">' + t('member_q') + ' <a href="#" data-go="me" style="color:#F0A83A;font-weight:600">' + t('enter_key') + '</a></p></div>';
+      '<p style="margin:12px 0 0"><a href="#" data-plans="1" style="color:#F0A83A;font-weight:600">' + t('pl_see') + '</a></p>' + '<p style="margin:12px 0 0">' + t('member_q') + ' <a href="#" data-go="me" style="color:#F0A83A;font-weight:600">' + t('enter_key') + '</a></p></div>';
   }
   function backBar(title) {
     return '<button class="back" data-more="">← ' + t('back') + '</button><h3 class="sec" style="margin-top:6px">' + esc(title) + '</h3>';
@@ -256,6 +257,8 @@
     var m = state.more, d = state.data;
     if (!m) {
       var items = [['movers', '📈', true], ['cal', '📅', true], ['rec', '🏁', false], ['learn', '📖', false], ['tools', '🌍', false]];
+      items.push(['plans', '🏷️', false]);
+      items.push(['terms', '📜', false]);
       if (brokers().length) items.push(['cds', '🪪', false]);
       return '<h3 class="sec" style="margin-top:2px">' + t('more_h') + '</h3>' + items.map(function (it) {
         var lockedItem = it[2] && d && d.locked;
@@ -267,6 +270,8 @@
     if (m === 'rec') return recordView();
     if (m === 'tools') return toolsView();
     if (m === 'cds') return cdsView();
+    if (m === 'plans') return plansView();
+    if (m === 'terms') return termsView();
     if (!d) return '<div class="empty"><b>–</b></div>';
     if (d.locked) return backBar(t('m_' + m)) + lockPanel();
     return m === 'movers' ? moversView() : calView();
@@ -339,12 +344,45 @@
     return h + '<p class="fine">' + t('rec_note') + (r.minDays ? ' (' + r.minDays + ' d)' : '') + '</p>';
   }
 
+  function legal() { return window.SN_LEGAL ? window.SN_LEGAL(Object.assign({ promoPct: (CFG.PROMO || {}).pct }, CFG.LEGAL || {})) : { version: '', summary: [], sections: [] }; }
+  function termsView() {
+    var L = legal();
+    return backBar(t('tc_h')) + '<p class="fine">' + t('tc_lang') + ' · ' + esc(L.version) + '</p>' + L.sections.map(function (s) {
+      return '<details class="gl"><summary>' + esc(s.h) + '</summary>' + s.p.map(function (x) { return '<p>' + esc(x) + '</p>'; }).join('') + '</details>';
+    }).join('') + '<p class="fine" style="margin-top:12px">' + t('tc_note') + '</p>';
+  }
+  function termsGate() {
+    var L = legal();
+    if (lsGet(LS.terms, '') === L.version || !L.version) return;
+    var sh = $('#sheet');
+    sh.innerHTML = '<div class="grab"></div><h2 id="sheet-title" style="font-family:var(--display);margin:4px 0 8px">' + t('tc_welcome') + '</h2><ul class="steps" style="margin-bottom:10px">' +
+      L.summary.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><p class="fine">' + t('tc_note') + '</p>' +
+      '<details class="gl" style="margin-top:8px"><summary>' + t('tc_read') + '</summary>' + L.sections.map(function (s) { return '<h4 style="margin:10px 0 2px;font-size:13px">' + esc(s.h) + '</h4>' + s.p.map(function (x) { return '<p class="fine" style="color:var(--text);margin:2px 0">' + esc(x) + '</p>'; }).join(''); }).join('') + '</details>' +
+      '<button class="btn block" style="margin-top:10px" data-terms="ok">' + t('tc_agree') + '</button>';
+    sh.hidden = false; $('#scrim').hidden = false; document.body.style.overflow = 'hidden'; state.gate = true;
+  }
+  function plansView() {
+    var P = CFG.PLANS || [], pr = CFG.PROMO || {}, pct = pr.pct || 0, lim = CFG.FOUNDING_LIMIT || 100;
+    var per = { week: 'pl_per_week', month: 'pl_per_month', year: 'pl_per_year' };
+    var h = backBar(t('pl_h')) + '<div class="banner info"><span>★</span><span><b>' + t('pl_founding') + ' ' + lim + '</b> ' + t('pl_waitlist') + '.</span></div>';
+    h += P.map(function (p) {
+      return '<div class="plan"><div><div class="t">' + t('pl_' + p.id) + '</div><div class="n">' + t(per[p.id] || 'pl_per_month') + '</div></div>' +
+        '<div class="right"><div class="pprice">KES ' + fmt(p.price) + '</div>' + (pct ? '<div class="n">' + t('pl_after') + ': <b style="color:var(--good)">KES ' + fmt(p.price * (100 - pct) / 100) + '</b></div>' : '') + '</div></div>';
+    }).join('') + '<p class="fine">' + t('pl_incl') + '</p>';
+    if (pct && pr.code) {
+      h += '<div class="panel promo"><h4>' + t('pl_promo_h') + '</h4><p style="margin:0 0 8px">' + t('pl_promo_p') + '</p><div class="keyrow" style="margin:4px 0"><input type="text" readonly value="' + esc(pr.code) + '" aria-label="Promo code"><button class="btn alt" data-copy="' + esc(pr.code) + '">' + t('cds_copy') + '</button></div></div>' +
+        '<h3 class="sec">' + t('pl_how_h') + '</h3><ol class="steps"><li>' + t('pl_how1') + '</li><li>' + t('pl_how2') + '</li><li>' + t('pl_how3') + '</li></ol>';
+    }
+    if (brokers().length) h += '<button class="btn block" data-more="cds">' + t('pl_cta_cds') + '</button>';
+    if (CFG.SIGNUP_URL) h += '<a class="btn alt block" style="margin-top:8px" href="' + esc(CFG.SIGNUP_URL) + '" target="_blank" rel="noopener">' + t('pl_cta_wait') + '</a>';
+    return h + '<p class="fine" style="margin-top:12px">' + t('pl_terms') + '</p><p class="fine">' + t('pl_consent') + '</p><p class="fine">' + t('disclaimer') + '</p>';
+  }
   function brokers() { return (CFG.BROKERS || []).filter(function (b) { return b && b.name; }); }
   function cdsView() {
     var h = backBar(t('cds_h')) + '<p class="fine" style="color:var(--text)">' + t('cds_intro') + '</p><h3 class="sec">' + t('cds_steps_h') + '</h3><ol class="steps">' +
       ['cds_s1', 'cds_s2', 'cds_s3', 'cds_s4'].map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ol>' +
       '<div class="banner warn" style="margin:10px 0"><span>🔒</span><span><b>' + t('cds_safe_h') + '.</b> ' + t('cds_safe') + '</span></div>' +
-      '<h3 class="sec">' + t('cds_disc_h') + '</h3><p class="fine" style="color:var(--text)">' + t('cds_disc') + '</p>';
+      '<div class="banner info" style="margin:10px 0"><span>ℹ</span><span>' + t('cds_disc2') + '</span></div><h3 class="sec">' + t('cds_disc_h') + '</h3><p class="fine" style="color:var(--text)">' + t('cds_disc') + '</p>';
     brokers().forEach(function (b) {
       h += '<div class="panel"><h4>' + esc(b.name) + '</h4>' + (b.code ? '<div class="keyrow" style="margin:4px 0"><input type="text" readonly value="' + esc(b.code) + '" aria-label="' + t('cds_code') + '"><button class="btn alt" data-copy="' + esc(b.code) + '">' + t('cds_copy') + '</button></div><p class="fine" style="margin:4px 0 8px">' + t('cds_enter') + '</p>' : '') +
         ((state.lang === 'sw' ? b.how_sw : b.how_en) ? '<p class="fine" style="color:var(--text);margin:4px 0 8px">' + esc(state.lang === 'sw' ? (b.how_sw || b.how_en) : (b.how_en || b.how_sw)) + '</p>' : '') +
@@ -444,7 +482,7 @@
     if (isStandalone()) h += '<p class="fine" style="margin:0">' + t('installed') + '</p>';
     else if (state.installEvt) h += '<button class="btn block" data-act="install">' + t('install_btn') + '</button>';
     else h += '<p class="fine" style="margin:0">' + t('install_help') + '</p>';
-    h += '</div><h3 class="sec">' + t('read_h') + '</h3><div class="panel"><div class="fine" style="color:var(--text)">' + t('read_p') + '</div></div><p class="fine">' + t('legal') + '</p><p class="fine">Rise with reasons. · v2.0</p>';
+    h += '</div><h3 class="sec">' + t('read_h') + '</h3><div class="panel"><div class="fine" style="color:var(--text)">' + t('read_p') + '</div></div><p class="fine">' + t('legal') + ' <a href="#" data-termslink="1" style="color:var(--teal);font-weight:600">' + t('tc_link') + '</a></p><p class="fine">Rise with reasons. · v2.0</p>';
     return h;
   }
 
@@ -504,8 +542,8 @@
   /* ------------------------------ events ------------------------------ */
   function setTab(tab) { if (tab === 'more' && state.tab === 'more') state.more = ''; state.tab = tab; if (tab !== 'more') state.more = ''; closeSheet(); render(); window.scrollTo(0, 0); }
   document.addEventListener('click', function (e) {
-    var tg = e.target.closest('[data-tab],[data-open],[data-mode],[data-sector],[data-rated],[data-star],[data-close],[data-act],[data-go],[data-more],[data-mv],[data-lang],[data-ics],[data-share],[data-addport],[data-prem],[data-copy]');
-    if (!tg) { if (e.target.id === 'scrim') closeSheet(); return; }
+    var tg = e.target.closest('[data-tab],[data-open],[data-mode],[data-sector],[data-rated],[data-star],[data-close],[data-act],[data-go],[data-more],[data-mv],[data-lang],[data-ics],[data-share],[data-addport],[data-prem],[data-copy],[data-plans],[data-terms],[data-termslink]');
+    if (!tg) { if (e.target.id === 'scrim' && !state.gate) closeSheet(); return; }
     var d = tg.dataset;
     if (d.tab) setTab(d.tab);
     else if (d.go) { e.preventDefault(); setTab(d.go); }
@@ -526,6 +564,9 @@
       var items = calItems(); if (d.ics !== '*') items = items.filter(function (s) { return s.ticker === d.ics; });
       if (items.length) download(d.ics === '*' ? 'setrise-ex-dividends.ics' : d.ics + '-ex-dividend.ics', 'text/calendar', makeIcs(items));
     }
+    else if (d.terms) { state.gate = false; lsSet(LS.terms, legal().version); closeSheet(); }
+    else if (d.termslink) { e.preventDefault(); state.tab = 'more'; state.more = 'terms'; closeSheet(); render(); window.scrollTo(0, 0); }
+    else if (d.plans) { e.preventDefault(); state.tab = 'more'; state.more = 'plans'; closeSheet(); render(); window.scrollTo(0, 0); }
     else if (d.copy) {
       var done = function () { tg.textContent = t('cds_copied'); setTimeout(function () { tg.textContent = t('cds_copy'); }, 1500); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(d.copy).then(done, function () { /* select manually */ }); else { var inp = tg.previousElementSibling; if (inp && inp.select) { inp.select(); try { document.execCommand('copy'); done(); } catch (x) { /* ignore */ } } }
@@ -564,7 +605,7 @@
     else if (id === 'taxstock') { var s = stockBy(e.target.value); if (s && num(s.price) && num(s.yield)) { $('#taxdps').value = (s.price * s.yield / 100).toFixed(2); updateTax(); } }
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet();
+    if (e.key === 'Escape' && !$('#sheet').hidden && !state.gate) closeSheet();
     if (e.key === 'Tab' && !$('#sheet').hidden) {
       var f = $('#sheet').querySelectorAll('button,a[href],input'); if (!f.length) return;
       var first = f[0], last = f[f.length - 1];
@@ -581,4 +622,5 @@
   state.mode = lsGet(LS.mode, 'long') === 'short' ? 'short' : 'long';
   var sl = lsGet(LS.lang, ''); state.lang = sl === 'sw' ? 'sw' : sl === 'en' ? 'en' : ((navigator.language || '').slice(0, 2) === 'sw' ? 'sw' : 'en');
   load();
+  termsGate();
 })();

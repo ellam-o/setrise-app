@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Setrise NSE</title>
 <meta name="description" content="Rise with reasons. NSE stock scores with the reasons behind every rating.">
-<meta name="theme-color" content="#0C2B33">
+<meta name="theme-color" content="#F6F1E7">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,15 +14,16 @@
 <meta name="apple-mobile-web-app-title" content="Setrise">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <div class="app">
   <header class="top">
+    <div class="dateline"><span id="dateline"></span><span>Nairobi Securities Exchange</span></div>
     <div class="brand">
-      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0F5C63"/><rect x="12" y="38" width="9" height="14" rx="2" fill="#7FD0D6"/><rect x="26" y="28" width="9" height="24" rx="2" fill="#7FD0D6"/><rect x="40" y="14" width="9" height="38" rx="2" fill="#F0A83A"/></svg>
-      <div><div class="name">Setrise NSE</div><div class="motto">Rise with reasons.</div></div>
+      <div class="name">Setrise NSE</div>
+      <div class="motto">Rise with reasons.</div>
     </div>
     <div id="asof" class="asof" aria-live="polite"></div>
   </header>
@@ -34,6 +35,7 @@
 <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden></section>
 <script src="config.js"></script>
 <script src="i18n.js"></script>
+<script src="legal.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

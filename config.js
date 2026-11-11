@@ -25,5 +25,17 @@ window.SETRISE_CONFIG = {
       how_sw: "Gusa \"Fungua akaunti\" hapa chini. Ukurasa wa kujisajili hufunguka na msimbo wetu wa rufaa tayari umejazwa, na huomba nyaraka halali za KYC kwenye tovuti ya dalali mwenyewe. Kisanduku cha msimbo kikiwa tupu, bandika msimbo ulio hapo juu. Unaweza pia kusakinisha programu ya AIB DigiTrader na kuweka msimbo huko."
     }
   ],
+  // Plans shown on the Plans page (KES). Founding prices for the first FOUNDING_LIMIT people on the waitlist.
+  // Payment is NOT handled in the app: you issue keys after confirming payment (M-Pesa) yourself.
+  FOUNDING_LIMIT: 100,
+  PLANS: [
+    { id: "week", price: 150 },
+    { id: "month", price: 500 },
+    { id: "year", price: 5000 }
+  ],
+  // Promo for people who open their AIB account with your referral link. pct = percent off the plan price.
+  PROMO: { code: "SETRISE50", pct: 50 },
+  // Used in the Terms and Privacy Notice. Fill these in before you publish.
+  LEGAL: { operator: "", email: "", effective: "11 November 2026" },
   SUPPORT_EMAIL: ""                                    // optional
 };
