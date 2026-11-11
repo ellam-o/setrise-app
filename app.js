@@ -98,7 +98,7 @@
   /* ------------------------------ data load ------------------------------ */
   function apiUrl() {
     var k = lsGet(LS.key, '');
-    return CFG.API_URL + (CFG.API_URL.indexOf('?') > -1 ? '&' : '?') + (k ? 'key=' + encodeURIComponent(k) : '');
+    return CFG.API_URL + (CFG.API_URL.indexOf('?') > -1 ? '&' : '?') + (k ? 'key=' + encodeURIComponent(k) + '&' : '') + '_=' + Date.now();
   }
   function fetchFeed(timeoutMs) {
     var ctl = ('AbortController' in window) ? new AbortController() : null;
@@ -119,7 +119,7 @@
         state.data = d; state.offline = false; state.err = ''; state.loading = false;
         if (lsGet(LS.key, '') && d.locked) state.keyMsg = d.keyProblem === 'expired' ? 'key_expired' : d.keyProblem === 'revoked' ? 'key_revoked' : 'key_bad';
         else state.keyMsg = '';
-        lsSet(LS.snap, JSON.stringify({ t: Date.now(), d: d }));
+        lsSet(LS.snap, JSON.stringify({ t: Date.now(), d: d })); state.lastLoad = Date.now();
         render();
       })
       .catch(function (e) {
@@ -144,7 +144,7 @@
     var d = state.data, el = $('#asof'), w = d && when(d.asOf);
     if (!w) { el.innerHTML = state.loading ? t('loading') : ''; return; }
     var cls = w.mins < 360 ? '' : w.mins < 4320 ? 'amber' : 'red';
-    el.innerHTML = '<span class="dot ' + cls + '"></span><span>' + t('asof') + ' ' + esc(w.text) + ' · ' + esc(w.rel) + '</span>';
+    el.innerHTML = '<span class="dot ' + cls + '"></span><span>' + t('asof') + ' ' + esc(w.text) + ' · ' + esc(w.rel) + '</span> <a href="#" data-act="reload" aria-label="Refresh" title="Refresh" style="color:inherit;font-weight:700;text-decoration:none">↻</a>';
   }
   var ICONS = {
     screen: '<path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/>',
@@ -614,6 +614,30 @@
     }
   });
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); state.installEvt = e; if (state.tab === 'me') render(); });
+  /* ---- quiet auto-refresh: only when the page is visible and the person is not typing, scrolling or reading a sheet ---- */
+  var lastAct = Date.now();
+  ['scroll', 'touchstart', 'touchmove', 'keydown', 'input', 'click', 'wheel'].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, { passive: true, capture: true }); });
+  function userBusy() {
+    var ae = document.activeElement, tag = ae && ae.tagName;
+    return Date.now() - lastAct < 20000 || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || !$('#sheet').hidden;
+  }
+  function quietRefresh() {
+    if (state.demo || state.quiet || document.hidden || userBusy() || !CFG.API_URL) return;
+    state.quiet = true;
+    fetchFeed(30000).then(function (d) {
+      state.quiet = false; state.lastLoad = Date.now();
+      var changed = !state.data || d.asOf !== state.data.asOf || d.health !== state.data.health || d.locked !== state.data.locked || state.offline;
+      state.offline = false; state.err = '';
+      lsSet(LS.snap, JSON.stringify({ t: Date.now(), d: d }));
+      if (changed && !userBusy()) { state.data = d; var sy = window.scrollY; render(); window.scrollTo(0, sy); }
+      else if (changed) state.data = d;
+    }).catch(function () { state.quiet = false; });
+  }
+  setInterval(function () {
+    var age = state.data && state.data.asOf ? (Date.now() - new Date(state.data.asOf).getTime()) / 60000 : 99999;
+    var every = age > 90 ? 2 : 5;                       // data looks old: look again sooner (minutes)
+    if (Date.now() - (state.lastLoad || 0) > every * 60000) quietRefresh();
+  }, 30000);
   window.addEventListener('online', load);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && state.data && !state.demo) load(); });
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
