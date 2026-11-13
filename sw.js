@@ -1,7 +1,7 @@
 // Setrise NSE service worker: app shell works offline. Data is cached by the app itself.
-const VERSION = 'sn-v14';
+const VERSION = 'sn-v15';
 const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'i18n.js', 'legal.js', 'config.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon.svg'];
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/favicon.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
