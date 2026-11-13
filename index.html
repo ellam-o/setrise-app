@@ -18,6 +18,14 @@
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div id="splash" aria-hidden="true">
+  <div class="sp-mark"><img class="sp-arrow" src="icons/splash-arrow.png" alt=""><span class="sp-shine"></span></div>
+  <div class="sp-name">Setrise NSE</div>
+  <div class="sp-motto">Rise with reasons.</div>
+</div>
+<script>
+(function(){var s=document.getElementById('splash');if(!s)return;setTimeout(function(){s.classList.add('sp-out');setTimeout(function(){s.remove()},600)},2300)})();
+</script>
 <div class="app">
   <header class="top">
     <div class="dateline"><span id="dateline"></span><span>Nairobi Securities Exchange</span></div>
