@@ -78,7 +78,10 @@
         sScore: ss, sRating: sr, sCov: 0.8, sWhy: sw, yield: y, pe: pe, pb: pb, roe: roe, exDiv: ex || null, daysEx: null, lPrev: lp, sPrev: sp };
     }
     function inDays(n) { var e = eatNow(); return new Date(Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), e.getUTCDate() + n)).toISOString().slice(0, 10); }
-    return { ok: true, locked: false, plan: 'Demo', expires: null, asOf: new Date().toISOString(), health: 'HEALTHY', fullRefresh: null, prevDate: inDays(-1),
+    // demo score history: 30 weekdays ending today, so the chart can be seen without the live feed
+    var hd = [], hs0 = new Date(Date.UTC(eatNow().getUTCFullYear(), eatNow().getUTCMonth(), eatNow().getUTCDate()));
+    while (hd.length < 30) { var wd = hs0.getUTCDay(); if (wd !== 0 && wd !== 6) hd.unshift(hs0.toISOString().slice(0, 10)); hs0 = new Date(hs0.getTime() - 86400000); }
+    var demo = { ok: true, locked: false, plan: 'Demo', expires: null, asOf: new Date().toISOString(), health: 'HEALTHY', fullRefresh: null, prevDate: inDays(-1), histDates: hd,
       fx: { SAR: 0.029, AED: 0.0284, QAR: 0.0282, USD: 0.0077, GBP: 0.0059 },
       record: { minDays: 14, picks: 18, since: inDays(-20), base: { n: 12, avg: 2.1, hit: 58 }, rows: [
         { rating: 'Strong candidate', horizon: 'Long-term', n: 6, avg: 3.4, hit: 67 }, { rating: 'Candidate', horizon: 'Long-term', n: 6, avg: 1.2, hit: 50 },
@@ -93,6 +96,14 @@
       s('MFG-E', 'Demo Manufacturing E', 'Manufacturing', 120, 34, 'Weak', '▼ Loss-making ▼ Rich P/B', null, 'Building history', '▼ Not enough price history yet', null, null, 3.1, -4, 36, null, null),
       s('REIT-F', 'Demo Property F', 'Real Estate', 14.3, null, 'Insufficient data', '▼ Not enough data to rate', null, 'Illiquid - skip', '▼ Illiquid', null, null, null, null, null, null, null)
     ] };
+    function walk(end, start, wob) { var a = [], n = hd.length; for (var i = 0; i < n; i++) { var f = i / (n - 1); a.push(Math.round((start + (end - start) * f * f + Math.sin(i * 1.7 + wob) * 2) * 10) / 10); } a[n - 1] = end; return a; }
+    demo.stocks.forEach(function (x, k) {
+      if (!num(x.lScore)) return;
+      x.h = { l: walk(x.lScore, x.lPrev || x.lScore - 6, k), s: num(x.sScore) ? walk(x.sScore, x.sPrev || x.sScore - 5, k + 2) : hd.map(function () { return null; }) };
+      x.chg = { l: [x.lPrev || x.lScore - 6, x.lScore, 7, ['Volume 2.1x avg', 'Yield 8.2%'], []].slice(0, 5) };
+      if (num(x.sScore)) x.chg.s = [x.sPrev || x.sScore - 5, x.sScore, 7, ['3-month momentum strong'], []];
+    });
+    return demo;
   }
 
   /* ------------------------------ data load ------------------------------ */
@@ -498,13 +509,63 @@
     if (state.tab === 'more' && state.more === 'tools') { updateFx(); updateTax(); }
   }
 
+  /* ------------------------------ score history ------------------------------ */
+  function fill(txt, o) { return String(txt).replace(/\{(\w+)\}/g, function (m, k) { return o[k] === undefined ? m : o[k]; }); }
+  function shortDate(ds) {
+    var d = new Date(ds + 'T12:00:00Z'); if (isNaN(d)) return ds;
+    return new Intl.DateTimeFormat(loc(), { timeZone: 'UTC', day: 'numeric', month: 'short' }).format(d);
+  }
+  /* Line chart of one score over the last weeks, plus a plain sentence on what changed. key: 'l' or 's' */
+  function histBlock(s, key) {
+    var dates = (state.data && state.data.histDates) || null, series = s.h && s.h[key];
+    if (!dates || !series) return state.demo ? '' : '<p class="fine hist-note">' + t('hist_wait') + '</p>';
+    var pts = [], i;
+    for (i = 0; i < series.length; i++) if (num(series[i])) pts.push(i);
+    if (pts.length < 2) return '<p class="fine hist-note">' + fill(t('hist_build'), { n: pts.length }) + '</p>';
+    var vals = pts.map(function (j) { return series[j]; }), lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var pad = Math.max(3, (20 - (hi - lo)) / 2); lo = Math.max(0, lo - pad); hi = Math.min(100, hi + pad);
+    if (hi - lo < 10) { hi = Math.min(100, lo + 10); }
+    var W = 300, H = 92, L = 24, R = 8, T = 8, B = 20, n = series.length;
+    function X(j) { return L + (n <= 1 ? 0 : (W - L - R) * j / (n - 1)); }
+    function Y(v) { return T + (H - T - B) * (1 - (v - lo) / (hi - lo)); }
+    var d = '', run = false;
+    for (i = 0; i < n; i++) {
+      if (num(series[i])) { d += (run ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(series[i]).toFixed(1); run = true; } else run = false;
+    }
+    var first = pts[0], last = pts[pts.length - 1];
+    var area = 'M' + X(first).toFixed(1) + ' ' + (H - B) + ' ' + d.replace(/^M/, 'L').replace(/M/g, 'L') + ' L' + X(last).toFixed(1) + ' ' + (H - B) + 'Z';
+    var c = s.chg && s.chg[key], summary = '', why = '';
+    if (c && num(c[0]) && num(c[1])) {
+      var diff = Math.round(c[1]) - Math.round(c[0]);
+      var o = { a: Math.round(c[0]), b: Math.round(c[1]), d: c[2] };
+      summary = fill(t(diff >= 3 ? 'hist_rose' : diff <= -3 ? 'hist_fell' : 'hist_flat'), o);
+      var up = diff >= 3 || (diff > -3 && diff >= 0);
+      var helped = c[3] || [], hurt = c[4] || [];
+      if (Math.abs(diff) >= 3) {
+        if (helped.length || hurt.length) {
+          if (helped.length) why += '<li><span class="up">▲</span><span><b>' + t('hist_helped') + ':</b> ' + helped.map(esc).join('; ') + '</span></li>';
+          if (hurt.length) why += '<li><span class="dn">▼</span><span><b>' + t('hist_hurt') + ':</b> ' + hurt.map(esc).join('; ') + '</span></li>';
+        } else why = '<li><span class="fine">' + t('hist_same') + '</span></li>';
+      }
+      summary = '<div class="hist-sum ' + (diff >= 3 ? 'up' : diff <= -3 ? 'dn' : '') + '">' + esc(summary) + '</div>';
+    }
+    var svg = '<svg class="hist-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(t('hist_h')) + '" preserveAspectRatio="none">' +
+      '<line x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '" class="hist-ax"/>' +
+      '<text x="2" y="' + (T + 6) + '" class="hist-t">' + Math.round(hi) + '</text><text x="2" y="' + (H - B) + '" class="hist-t">' + Math.round(lo) + '</text>' +
+      '<path d="' + area + '" class="hist-area"/><path d="' + d + '" class="hist-line"/>' +
+      '<circle cx="' + X(last).toFixed(1) + '" cy="' + Y(series[last]).toFixed(1) + '" r="3.5" class="hist-dot"/>' +
+      '<text x="' + L + '" y="' + (H - 5) + '" class="hist-t">' + esc(shortDate(dates[first])) + '</text>' +
+      '<text x="' + (W - R) + '" y="' + (H - 5) + '" class="hist-t" text-anchor="end">' + esc(shortDate(dates[last])) + '</text></svg>';
+    return '<div class="hist">' + summary + svg + (why ? '<ul class="reasons hist-why">' + why + '</ul>' : '') + '<p class="fine hist-note">' + t('hist_note') + '</p></div>';
+  }
+
   /* ------------------------------ detail sheet ------------------------------ */
   function kv(l, v) { return '<div class="kv"><small>' + l + '</small><b>' + v + '</b></div>'; }
-  function scoreBlock(title, sc, rt, cov, why) {
+  function scoreBlock(title, sc, rt, cov, why, st, hk) {
     var rs = reasons(why);
     return '<div class="panel"><h4>' + title + '</h4><div class="big">' + scoreBadge(sc, rt) +
       '<div style="flex:1"><div>' + pill(rt) + '</div>' + (num(cov) ? '<div class="fine" style="margin-top:4px">' + t('coverage') + ' ' + Math.round(cov * 100) + '%</div>' : '') +
-      '<div class="bar" aria-hidden="true"><i style="width:' + (num(sc) ? Math.max(2, Math.min(100, sc)) : 0) + '%"></i></div></div></div>' +
+      '<div class="bar" aria-hidden="true"><i style="width:' + (num(sc) ? Math.max(2, Math.min(100, sc)) : 0) + '%"></i></div></div></div>' + (st && hk ? histBlock(st, hk) : '') +
       (rs.length ? '<ul class="reasons" style="margin-top:10px">' + rs.map(function (r) { return '<li><span class="' + (r.up ? 'up' : 'dn') + '">' + (r.up ? '▲' : '▼') + '</span><span>' + esc(r.t) + '</span></li>'; }).join('') + '</ul>' : '') + '</div>';
   }
   var lastFocus = null;
@@ -517,8 +578,8 @@
     if (!locked) h += '<div class="panel" style="display:flex;justify-content:space-between;align-items:center"><div><small class="fine">' + t('last_price') + '</small><div class="price" style="font-size:22px">' + (num(s.price) ? fmt(s.price, 2) : '–') + '</div></div><div class="right"><small class="fine">' + t('data') + '</small><div>' + dataPill(s.data) + '</div></div></div>';
     if (locked) h += scoreBlock(t('long_score'), s.lScore, s.lRating, null, '') + lockPanel();
     else {
-      h += long ? scoreBlock(t('long_score'), s.lScore, s.lRating, s.lCov, s.lWhy) + scoreBlock(t('short_score'), s.sScore, s.sRating, s.sCov, s.sWhy)
-                : scoreBlock(t('short_score'), s.sScore, s.sRating, s.sCov, s.sWhy) + scoreBlock(t('long_score'), s.lScore, s.lRating, s.lCov, s.lWhy);
+      h += long ? scoreBlock(t('long_score'), s.lScore, s.lRating, s.lCov, s.lWhy, s, 'l') + scoreBlock(t('short_score'), s.sScore, s.sRating, s.sCov, s.sWhy, s, 's')
+                : scoreBlock(t('short_score'), s.sScore, s.sRating, s.sCov, s.sWhy, s, 's') + scoreBlock(t('long_score'), s.lScore, s.lRating, s.lCov, s.lWhy, s, 'l');
       h += '<div class="panel"><h4>' + t('key_numbers') + '</h4><div class="grid">' + kv(t('yield'), fmt(s.yield, 1)) + kv('P/E', fmt(s.pe, 1)) + kv('P/B', fmt(s.pb, 2)) + kv('ROE %', fmt(s.roe, 1)) +
         kv(t('next_exdiv'), s.exDiv ? esc(fmtDate(s.exDiv)) : '–') + kv(t('days_exdiv'), (s.exDiv && daysUntil(s.exDiv) !== null) ? daysUntil(s.exDiv) : '–') + '</div>' + (tierTxt ? '<p class="fine" style="margin:10px 0 0">' + esc(tierTxt) + '</p>' : '') + '</div>';
       h += '<div class="two"><button class="btn alt" data-share="' + esc(tk) + '">⇪ ' + t('share') + '</button><button class="btn alt" data-addport="' + esc(tk) + '">＋ ' + t('add_port') + '</button></div>';

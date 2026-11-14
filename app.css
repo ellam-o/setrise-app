@@ -182,3 +182,16 @@ h3.sec{font-size:18px;border-top:3px double var(--text);padding-top:8px;margin-t
 .sp-motto{position:absolute;left:50%;top:90.8%;transform:translateX(-50%);font-family:var(--display);font-style:italic;font-size:clamp(13px,1.9vw,16px);color:#F0A83A;white-space:nowrap;opacity:0;animation:sp-lit 1.1s ease-out 1.5s both}
 @keyframes sp-lit{from{opacity:0;transform:translate(-50%,7px);text-shadow:0 0 0 rgba(255,214,130,0)}60%{text-shadow:0 0 22px rgba(255,214,130,.65)}to{opacity:1;transform:translate(-50%,0);text-shadow:0 0 16px rgba(255,214,130,.28)}}
 @media (prefers-reduced-motion:reduce){.sp-glow,.sp-name,.sp-motto{animation:none}.sp-glow{display:none}.sp-motto{opacity:1}#splash{transition:none}}
+
+/* score history */
+.hist{margin:10px 0 2px}
+.hist-sum{font-weight:700;font-size:14px;margin-bottom:4px}
+.hist-sum.up{color:var(--good,#1B7A47)}.hist-sum.dn{color:var(--bad,#B3261E)}
+.hist-svg{display:block;width:100%;height:96px}
+.hist-ax{stroke:var(--line);stroke-width:1}
+.hist-line{fill:none;stroke:var(--teal);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.hist-area{fill:var(--teal);opacity:.08}
+.hist-dot{fill:var(--amber,#A85F00)}
+.hist-t{font:9px 'IBM Plex Mono',monospace;fill:var(--muted,#5B7077)}
+.hist-why{margin-top:6px}
+.hist-note{margin:6px 0 0}
